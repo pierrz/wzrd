@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     S3_KEY: str
     ANTHROPIC_API_KEY: str
     OPENAI_API_KEY: str
+    STATE_FILE: str = "conversation_state.json"
 
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
 
