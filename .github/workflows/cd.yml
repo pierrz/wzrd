@@ -72,7 +72,7 @@ jobs:
       TF_VAR_github_repo_name: ${{ github.repository }}
 
       # Typescript application
-      # TF_VAR_avalanche_rpc_url: ${{ secrets.AVALANCHE_RPC_URL }}
+      TF_VAR_anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 
     steps:
       - name: Set Secrets for Pull Request
