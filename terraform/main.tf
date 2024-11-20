@@ -19,10 +19,10 @@ data "scaleway_account_ssh_key" "cd_key" {
 }
 
 locals {
-  domain_parts  = split(".", var.wzrd_domain)
-  sub_domain    = local.domain_parts[0]
-  root_domain   = "${local.domain_parts[1]}.${local.domain_parts[2]}"
-  region        = substr(var.scaleway_zone, 0, 6)
+  domain_parts = split(".", var.wzrd_domain)
+  sub_domain   = local.domain_parts[0]
+  root_domain  = "${local.domain_parts[1]}.${local.domain_parts[2]}"
+  region       = substr(var.scaleway_zone, 0, 6)
 }
 
 # Create instance
