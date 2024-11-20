@@ -132,7 +132,7 @@ resource "null_resource" "setup_services" {
       # Setup Python environment and dependencies
       "echo 'Setting up Python environment ...'",
       "python3 -m venv /opt/wzrd/venv",
-      "source /opt/wzrd/venv/bin/activate",
+      ". /opt/wzrd/venv/bin/activate",
       "pip install -r /opt/wzrd/app/requirements.txt",
       "deactivate",
     ]
@@ -241,11 +241,11 @@ resource "null_resource" "setup_services" {
       "sudo systemctl enable ufw",
 
       # Setup SSL certificate with Certbot
-      "echo 'Configuring SSL ...'",
-      "sudo ln -sf /snap/bin/certbot /usr/bin/certbot",
-      "sudo certbot --nginx -d ${var.wzrd_domain} --non-interactive --agree-tos --email ${local.sub_domain}@${local.root_domain} >> /srv/logs/certbot.log 2>&1",
-      "sudo rm -f /etc/nginx/sites-enabled/default", # just in case
-      "sudo nginx -t",
+      # "echo 'Configuring SSL ...'",
+      # "sudo ln -sf /snap/bin/certbot /usr/bin/certbot",
+      # "sudo certbot --nginx -d ${var.wzrd_domain} --non-interactive --agree-tos --email ${local.sub_domain}@${local.root_domain} >> /srv/logs/certbot.log 2>&1",
+      # "sudo rm -f /etc/nginx/sites-enabled/default", # just in case
+      # "sudo nginx -t",
     ]
   }
 
