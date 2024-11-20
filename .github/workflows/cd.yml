@@ -67,7 +67,7 @@ jobs:
       TF_VAR_data_source_key: ${{ secrets.DATA_SOURCE_KEY }}
 
       # Github secrets
-      TF_VAR_bctk_github_token: ${{ secrets.WZRD_GITHUB_TOKEN }}
+      TF_VAR_wzrd_github_token: ${{ secrets.WZRD_GITHUB_TOKEN }}
       TF_VAR_github_workspace: ${{ github.workspace }}
       TF_VAR_github_repo_name: ${{ github.repository }}
 
