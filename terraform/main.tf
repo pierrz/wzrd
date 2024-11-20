@@ -70,6 +70,9 @@ resource "scaleway_instance_server" "main" {
       - snapd
       - ufw
       - unzip
+      - python3
+      - python3-pip
+      - python3-venv
 
       snap:
         commands:
@@ -125,6 +128,13 @@ resource "null_resource" "setup_services" {
       "git clone $CLONE_FLAGS $CLONE_URI /opt/wzrd",
       "cd /opt/wzrd/app",
       "npm install --no-package-lock --no-save",
+
+      # Setup Python environment and dependencies
+      "echo 'Setting up Python environment ...'",
+      "python3 -m venv /opt/wzrd/venv",
+      "source /opt/wzrd/venv/bin/activate",
+      "pip install -r /opt/wzrd/app/requirements.txt",
+      "deactivate",
     ]
   }
 
@@ -166,7 +176,7 @@ resource "null_resource" "setup_services" {
       "EOF",
 
       # Service for Typescript components
-      "echo 'Creating WZRD service file ...'",
+      "echo 'Creating WZRD service files ...'",
       "sudo tee /etc/systemd/system/wzrd-app.service << EOF",
       "[Unit]",
       "Description=WZRD Application",
@@ -175,6 +185,23 @@ resource "null_resource" "setup_services" {
       "User=${var.scaleway_server_user}",
       "WorkingDirectory=/opt/wzrd",
       "ExecStart=/usr/bin/npm start",
+      "Restart=always",
+      "RestartSec=10",
+      "[Install]",
+      "WantedBy=multi-user.target",
+      "EOF",
+
+      # Service for Flask server
+      "sudo tee /etc/systemd/system/wzrd-server.service << EOF",
+      "[Unit]",
+      "Description=WZRD Flask Server",
+      "After=network.target",
+      "[Service]",
+      "Type=simple",
+      "User=${var.scaleway_server_user}",
+      "WorkingDirectory=/opt/wzrd/app",
+      "Environment=PATH=/opt/wzrd/venv/bin",
+      "ExecStart=/opt/wzrd/venv/bin/python server.py",
       "Restart=always",
       "RestartSec=10",
       "[Install]",
@@ -198,7 +225,6 @@ resource "null_resource" "setup_services" {
   # System setup
   provisioner "remote-exec" {
     inline = [
-
       # Wait for Snap readiness
       "echo 'Wait for snap packages to be installed ...'",
       "while [ ! -f /snap/bin/aws ]; do sleep 1; done",
@@ -226,14 +252,11 @@ resource "null_resource" "setup_services" {
   # Start services
   provisioner "remote-exec" {
     inline = [
-      # # Import data
-      # "echo 'Importing data from bucket ...'",
-      # "sudo mkdir -p /srv/data/source /srv/data/processed /srv/data/failed /srv/logs", # creating all data directories
-      # "sudo chown -R ${var.scaleway_server_user}:${var.scaleway_server_user} /srv/data",
-      # "sudo chown -R ${var.scaleway_server_user}:${var.scaleway_server_user} /srv/logs",
-      # "aws s3api get-object --bucket ${var.data_bucket} --key ${var.data_source} /srv/data/source/$(basename '${var.data_source}') >> /srv/logs/s3download.log 2>&1",
+      # Create log directories
+      "sudo mkdir -p /srv/logs",
+      "sudo chown -R ${var.scaleway_server_user}:${var.scaleway_server_user} /srv/logs",
 
-      # Reload systemd, enable and start the service
+      # Reload systemd and start services
       "sh /opt/wzrd/terraform/init-services.sh >> /srv/logs/init-services.log 2>&1",
 
       # Save Terraform scripts (avoiding permission errors) for debug purposes
@@ -244,7 +267,6 @@ resource "null_resource" "setup_services" {
       "date | xargs -I {} echo 'Provisioning completed at: {}'",
     ]
   }
-
 }
 
 output "instance_ipv4" {
