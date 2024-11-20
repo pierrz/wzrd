@@ -39,16 +39,3 @@ def download_and_read_docx(bucket_name, object_key):
         raise Exception(f"Failed to read from S3: {e}")
     except Exception as e:
         raise Exception(f"Error processing the document: {e}")
-
-# Example usage
-if __name__ == "__main__":
-    try:
-        # Example S3 bucket and object key
-        bucket = "your-bucket-name"
-        key = "path/to/your/document.docx"
-        
-        content = download_and_read_docx(bucket, key)
-        print("Document content:")
-        print(content)
-    except Exception as e:
-        print(f"Error: {e}")

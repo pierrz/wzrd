@@ -1,0 +1,151 @@
+# CD pipeline with timeout based cancellation logic to deploy the code on a brand new Scaleway instance
+
+name: CD pipeline
+
+on:
+  workflow_dispatch: # manual trigger
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+
+  check-condition:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.7
+      - name: Run condition check
+        uses: ./.github/actions/condition-check
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  approval-timeout:
+    runs-on: ubuntu-latest
+    needs: check-condition
+    if: ${{ needs.check-condition.outputs.RUN_DEPLOYMENT }} == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.7
+      - name: Run approval timeout mechanism
+        uses: ./.github/actions/approval-timeout
+        with:
+          ENVIRONMENT: production
+          TIMEOUT_MINUTES: 15
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+
+  deployment:
+    runs-on: ubuntu-latest
+    needs: check-condition
+    if: ${{ needs.check-condition.outputs.RUN_DEPLOYMENT }} == 'true'
+    environment:
+      name: production
+    
+    # TF_VAR_* are variables for Terraform
+    env:
+      
+      # TF_LOG: DEBUG
+
+      # Domain
+      TF_VAR_wzrd_domain: ${{ secrets.WZRD_DOMAIN }}
+
+      # Scaleway credentials
+      TF_VAR_scaleway_access_key: ${{ secrets.SCALEWAY_ACCESS_KEY }}
+      TF_VAR_scaleway_secret_key: ${{ secrets.SCALEWAY_SECRET_KEY }}
+      TF_VAR_scaleway_organization_id: ${{ secrets.SCALEWAY_ORGANIZATION_ID }}
+      TF_VAR_scaleway_project_id: ${{ secrets.SCALEWAY_PROJECT_ID }}
+      TF_VAR_scaleway_server_user: ${{ secrets.SCALEWAY_SERVER_USER }}
+      TF_VAR_scaleway_ssh_pub_key_name: ${{ secrets.SCALEWAY_SSH_PUB_KEY_NAME }}
+      TF_VAR_scaleway_ssh_private_key: ${{ secrets.SCALEWAY_SSH_PRIVATE_KEY }}
+      TF_VAR_scaleway_zone: ${{ secrets.SCALEWAY_ZONE }}
+
+      # Data stored in Scaleway
+      TF_VAR_data_bucket: ${{ secrets.DATA_BUCKET }}
+      TF_VAR_data_source_key: ${{ secrets.DATA_SOURCE_KEY }}
+
+      # Github secrets
+      TF_VAR_bctk_github_token: ${{ secrets.WZRD_GITHUB_TOKEN }}
+      TF_VAR_github_workspace: ${{ github.workspace }}
+      TF_VAR_github_repo_name: ${{ github.repository }}
+
+      # Typescript application
+      # TF_VAR_avalanche_rpc_url: ${{ secrets.AVALANCHE_RPC_URL }}
+
+    steps:
+      - name: Set Secrets for Pull Request
+        if: github.event_name == 'pull_request'
+        run: echo "TF_VAR_github_repo_branch=${{ github.head_ref }}" >> $GITHUB_ENV
+
+      - name: Set repository branch environment variable
+        run: |
+          if [ -z "${{ env.TF_VAR_github_repo_branch }}" ]; then
+              echo "TF_VAR_github_repo_branch is not set"
+              echo "TF_VAR_github_repo_branch=${{ github.ref_name }}" >> $GITHUB_ENV
+          fi
+          echo "TF_VAR_github_repo_branch is set to: ${{ env.TF_VAR_github_repo_branch }}"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.7
+
+      - name: Delete deprecated Scaleway resources (DNS records & instance)
+        continue-on-error: true   # when there is no instance to delete
+        run: |
+
+          # Install Scaleway CLI
+          ZONE=${{ secrets.SCALEWAY_ZONE }}
+          REGION="${ZONE:0:-2}"
+          echo 'Installing Scaleway CLI ...'
+          curl -s https://raw.githubusercontent.com/scaleway/scaleway-cli/master/scripts/get.sh | sh
+          mkdir -p ~/.config/scw
+          tee ~/.config/scw/config.yaml << EOF
+            access_key: ${{ secrets.SCALEWAY_ACCESS_KEY }}
+            secret_key: ${{ secrets.SCALEWAY_SECRET_KEY }}
+            default_organization_id: ${{ secrets.SCALEWAY_ORGANIZATION_ID }}
+            default_project_id: ${{ secrets.SCALEWAY_PROJECT_ID }}
+            default_zone: ${{ secrets.SCALEWAY_ZONE }}
+            default_region: $REGION
+            api_url: https://api.scaleway.com
+          EOF
+
+          # Delete previous DNS records
+          ROOT_DOMAIN=$(echo "$(echo ${{ secrets.WZRD_DOMAIN }} | cut -d'.' -f2).$(echo ${{ secrets.WZRD_DOMAIN }} | cut -d'.' -f3)")
+          SUB_DOMAIN=$(echo ${{ secrets.WZRD_DOMAIN }} | cut -d'.' -f1)
+          echo 'Deleting previous DNS records for '$SUB_DOMAIN' in '$ROOT_DOMAIN' ...'
+          scw dns record delete $ROOT_DOMAIN name=$SUB_DOMAIN type=A
+          scw dns record delete $ROOT_DOMAIN name=$SUB_DOMAIN type=AAAA
+
+          # Delete previous instance
+          # scw instance server list project-id=${{ secrets.SCALEWAY_PROJECT_ID }}
+          # INSTANCE_META=$(scw instance server list project-id=${{ secrets.SCALEWAY_PROJECT_ID }})
+          # INSTANCE_ID=$(echo "$INSTANCE_META" | awk 'NR==2 {print $1}')
+          # INSTANCE_NAME=$(echo "$INSTANCE_META" | awk 'NR==2 {print $2}')
+          # echo "Deleting instance '$INSTANCE_NAME' ..."
+          # scw instance server stop "$INSTANCE_ID"
+          # scw instance server wait "$INSTANCE_ID"
+          # scw instance server delete "$INSTANCE_ID" with-volumes=all with-ip
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3.1.2
+
+      - name: Initialize Terraform
+        uses: ./.github/actions/terraform
+        with:
+          command: init
+
+      - name: Terraform Format
+        uses: ./.github/actions/terraform
+        with:
+          command: fmt -check
+
+      - name: Terraform Plan
+        uses: ./.github/actions/terraform
+        with:
+          command: plan
+
+      - name: Apply Terraform configuration
+        uses: ./.github/actions/terraform
+        with:
+          command: apply -auto-approve

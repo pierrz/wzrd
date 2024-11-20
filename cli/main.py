@@ -37,7 +37,7 @@ def import_resume():
     conv, state = get_conversation()
     
     if not state[ConversationState.resume_imported]:
-        cv_string = download_and_read_docx(cli_config.S3_BUCKET, cli_config.S3_KEY)
+        cv_string = download_and_read_docx(cli_config.DATA_BUCKET, cli_config.DATA_SOURCE_KEY)
         message = (
             f"Here is the resume from a colleague: {cv_string}." \
             "Can you read it and then I'll ask you some question about it." \

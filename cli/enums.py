@@ -1,5 +1,5 @@
 """
-Module dedicated to all (potentially shared) Enum objects
+Module dedicated to all Enum objects
 """
 
 from enum import Enum

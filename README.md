@@ -10,11 +10,11 @@ to quickly play with different LLMs and discuss with them about a provided text 
 
 ```
 # import CV
-uv run cli.py import-resume
+uv run cli/main.py import-resume
 
 # ask questions
-uv run cli.py ask-question "How many years of experience do they have?"
+uv run cli/main.py ask-question "How many years of experience do they have?"
 
 # reset bot
-uv run cli.py reset
+uv run cli/main.py reset
 ```

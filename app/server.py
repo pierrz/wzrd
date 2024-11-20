@@ -9,6 +9,9 @@ CORS(app)
 @app.route('/ask', methods=['POST'])
 def ask():
     try:
+
+        subprocess.run(['python', '../cli/main.py', 'import-resume'])
+        
         data = request.get_json()
         question = data.get('question')
         
@@ -16,7 +19,7 @@ def ask():
             return jsonify({'error': 'No question provided'}), 400
 
         # Call the CLI with the question
-        result = subprocess.run(['python', '../cli.py', 'ask-question', question], 
+        result = subprocess.run(['python', '../cli/main.py', 'ask-question', question], 
                               capture_output=True, 
                               text=True)
         
