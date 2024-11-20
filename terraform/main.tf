@@ -118,12 +118,12 @@ resource "null_resource" "setup_services" {
 
       # Clone and setup application
       "echo 'Clone and setup application ...'",
-      "sudo mkdir -p /opt/app",
-      "sudo chown -R ${var.scaleway_server_user}:${var.scaleway_server_user} /opt/app",
+      "sudo mkdir -p /opt/wzrd",
+      "sudo chown -R ${var.scaleway_server_user}:${var.scaleway_server_user} /opt/wzrd",
       "CLONE_URI='https://${var.wzrd_github_token}@github.com/${var.github_repo_name}.git'",
       "CLONE_FLAGS='--branch ${var.github_repo_branch} --single-branch'",
-      "git clone $CLONE_FLAGS $CLONE_URI /opt/app",
-      "cd /opt/app",
+      "git clone $CLONE_FLAGS $CLONE_URI /opt/wzrd",
+      "cd /opt/wzrd/app",
       "npm install --no-package-lock --no-save",
     ]
   }
@@ -158,7 +158,7 @@ resource "null_resource" "setup_services" {
 
       # .env
       "echo 'Creating .env file ...'",
-      "tee /opt/app/.env << EOF",
+      "tee /opt/wzrd/.env << EOF",
       "ANTHROPIC_API_KEY=${var.anthropic_api_key}",
       "DATA_BUCKET=${var.data_bucket}",
       "DATA_SOURCE_KEY=${var.data_source_key}",
@@ -173,7 +173,7 @@ resource "null_resource" "setup_services" {
       "[Service]",
       "Type=simple",
       "User=${var.scaleway_server_user}",
-      "WorkingDirectory=/opt/app",
+      "WorkingDirectory=/opt/wzrd",
       "ExecStart=/usr/bin/npm start",
       "Restart=always",
       "RestartSec=10",
@@ -183,7 +183,7 @@ resource "null_resource" "setup_services" {
 
       # Nginx configuration
       "echo 'Setting up Nginx ...'",
-      "NGINX_CONF_TEMPLATE=$(cat /opt/app/terraform/bctk.conf)",
+      "NGINX_CONF_TEMPLATE=$(cat /opt/wzrd/terraform/bctk.conf)",
       "sudo tee /etc/nginx/sites-available/bctk.conf << EOF",
       "server {",
       "server_name ${var.wzrd_domain};",
@@ -234,11 +234,11 @@ resource "null_resource" "setup_services" {
       # "aws s3api get-object --bucket ${var.data_bucket} --key ${var.data_source} /srv/data/source/$(basename '${var.data_source}') >> /srv/logs/s3download.log 2>&1",
 
       # Reload systemd, enable and start the service
-      "sh /opt/app/terraform/init-services.sh >> /srv/logs/init-services.log 2>&1",
+      "sh /opt/wzrd/terraform/init-services.sh >> /srv/logs/init-services.log 2>&1",
 
       # Save Terraform scripts (avoiding permission errors) for debug purposes
-      "mkdir -p /opt/app/tmp",
-      "find /tmp -maxdepth 1 -name 'terraform_*.sh' -type f 2>/dev/null | xargs -I {} cp {} /opt/app/tmp/ || true",
+      "mkdir -p /opt/wzrd/tmp",
+      "find /tmp -maxdepth 1 -name 'terraform_*.sh' -type f 2>/dev/null | xargs -I {} cp {} /opt/wzrd/tmp/ || true",
 
       # Success message
       "date | xargs -I {} echo 'Provisioning completed at: {}'",
