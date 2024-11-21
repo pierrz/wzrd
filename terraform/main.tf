@@ -37,6 +37,7 @@ resource "scaleway_instance_server" "main" {
   type = var.scaleway_instance_type
   # image = "ubuntu_noble"    # ubuntu 24.04 LTS
   image = "ubuntu_jammy" # ubuntu 22.04 LTS
+  tags  = ["wzrd", "demo"]
   ip_ids = [
     scaleway_instance_ip.public_ipv4.id,
     scaleway_instance_ip.public_ipv6.id
@@ -128,7 +129,7 @@ resource "null_resource" "setup_services" {
       "git clone $CLONE_FLAGS $CLONE_URI /opt/wzrd",
       "cd /opt/wzrd/app",
       "npm install --no-package-lock --no-save",
-      
+
       # Build the Vue.js application
       "npm run build",
 

@@ -118,14 +118,14 @@ jobs:
           scw dns record delete $ROOT_DOMAIN name=$SUB_DOMAIN type=AAAA
 
           # Delete previous instance
-          # scw instance server list project-id=${{ secrets.SCALEWAY_PROJECT_ID }}
-          # INSTANCE_META=$(scw instance server list project-id=${{ secrets.SCALEWAY_PROJECT_ID }})
-          # INSTANCE_ID=$(echo "$INSTANCE_META" | awk 'NR==2 {print $1}')
-          # INSTANCE_NAME=$(echo "$INSTANCE_META" | awk 'NR==2 {print $2}')
-          # echo "Deleting instance '$INSTANCE_NAME' ..."
-          # scw instance server stop "$INSTANCE_ID"
-          # scw instance server wait "$INSTANCE_ID"
-          # scw instance server delete "$INSTANCE_ID" with-volumes=all with-ip
+          scw instance server list project-id=${{ secrets.SCALEWAY_PROJECT_ID }}
+          INSTANCE_META=$(scw instance server list project-id=${{ secrets.SCALEWAY_PROJECT_ID }} tags=wzrd)
+          INSTANCE_ID=$(echo "$INSTANCE_META" | awk 'NR==2 {print $1}')
+          INSTANCE_NAME=$(echo "$INSTANCE_META" | awk 'NR==2 {print $2}')
+          echo "Deleting instance '$INSTANCE_NAME' ..."
+          scw instance server stop "$INSTANCE_ID"
+          scw instance server wait "$INSTANCE_ID"
+          scw instance server delete "$INSTANCE_ID" with-volumes=all with-ip
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3.1.2
