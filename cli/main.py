@@ -11,8 +11,8 @@ def load_state():
     if os.path.exists(cli_config.STATE_FILE):
         with open(cli_config.STATE_FILE, 'r') as f:
             return json.load(f)
-    else:
-        print("No state file found. Creating a new one.")
+    # else:
+    print("No state file found. Creating a new one.")
     return {ConversationState.resume_imported: False, ConversationState.messages: []}
 
 def update_state(state):
@@ -42,9 +42,9 @@ def import_resume():
         cv_string = download_and_read_docx(cli_config.DATA_BUCKET, cli_config.DATA_SOURCE_KEY)
         message = (
             f"Here is the resume from a colleague: {cv_string}." \
-            "Can you read it and then I'll ask you some question about it." \
-            "Once you have fully ingested the resume, reply just " \
-            "'I am ready to discuss the life and achievements of <name_of_the_resume_author>'."
+            "Read it and then I'll ask you some question about it." \
+            "Once you have fully ingested the resume, reply only :" \
+            "'Ask me anything about <name_of_the_resume_author>'."
         )
         conv.add_message(ConversationActor.user.value, message)
         state[ConversationState.messages].append({ConversationState.role: ConversationActor.user, ConversationState.content: message})

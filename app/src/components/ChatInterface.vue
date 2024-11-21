@@ -1,8 +1,8 @@
 <template>
 
   <div class="demo-title">
-    <h1>Wisetax assignment</h1>
-    <h3>Chat-bot demo</h3>
+    <h1>Wisetax Assignment</h1>
+    <h3>Chatbot Demo</h3>
   </div>
 
   <div class="chat-container">
@@ -52,15 +52,11 @@ async function importResume() {
       },
     })
 
-    const data = await response.json() as ApiResponse,
-          trimmed_response = data.response.replace('No state file found. Creating a new one. ', '');
-
-    alert(data.response)
-    alert(trimmed_response)
-    // Add assistant response
+    // Trimming the response to make it look nice in the UI
+    const data = await response.json() as ApiResponse;
     messages.value.push({
       role: 'assistant',
-      content: trimmed_response
+      content: data.response.replace('No state file found. Creating a new one.', '')
     })
   } catch (error) {
     console.error('Error:', error)

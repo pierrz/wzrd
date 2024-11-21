@@ -58,9 +58,6 @@ resource "scaleway_instance_server" "main" {
         ssh_authorized_keys:
         - ${data.scaleway_account_ssh_key.cd_key.public_key}
 
-      # package_update: true
-      # package_upgrade: true
-
       packages:
       - apt-transport-https
       - ca-certificates
@@ -71,15 +68,11 @@ resource "scaleway_instance_server" "main" {
       - snapd
       - ufw
       - unzip
-      - python3
-      - python3-pip
-      - python3-venv
 
       snap:
         commands:
           - snap wait system seed.loaded
           - snap install certbot --classic
-          - snap install aws-cli --classic
     EOF
   }
 }
@@ -131,17 +124,13 @@ resource "null_resource" "setup_services" {
       "npm install --no-package-lock --no-save",
 
       # Build the Vue.js application
-      "npm run build",
+      # "npm run build",
 
       # Setup Python environment and dependencies
       "echo 'Setting up Python environment ...'",
       "curl -LsSf https://astral.sh/uv/install.sh | sh",
       "$HOME/.local/bin/uv venv",
       "$HOME/.local/bin/uv sync"
-      # "python3 -m venv /opt/wzrd/venv",
-      # ". /opt/wzrd/venv/bin/activate",
-      # "pip install -r /opt/wzrd/app/requirements.txt",
-      # "deactivate",
     ]
   }
 
@@ -182,7 +171,7 @@ resource "null_resource" "setup_services" {
       "DATA_SOURCE_KEY=${var.data_source_key}",
       "EOF",
 
-      # Service for Typescript components
+      # Service for the Vue app
       "echo 'Creating WZRD service files ...'",
       "sudo tee /etc/systemd/system/wzrd-app.service << EOF",
       "[Unit]",
@@ -234,6 +223,12 @@ resource "null_resource" "setup_services" {
   # System setup
   provisioner "remote-exec" {
     inline = [
+      
+      # Create log directories
+      "echo 'Create log directory ...'",
+      "sudo mkdir -p /srv/logs",
+      "sudo chown -R ${var.scaleway_server_user}:${var.scaleway_server_user} /srv/logs",
+
       # Wait for Snap readiness
       "echo 'Wait for snap packages to be installed ...'",
       "while [ ! -f /snap/bin/aws ]; do sleep 1; done",
@@ -266,16 +261,8 @@ resource "null_resource" "setup_services" {
   # Start services
   provisioner "remote-exec" {
     inline = [
-      # Create log directories
-      "sudo mkdir -p /srv/logs",
-      "sudo chown -R ${var.scaleway_server_user}:${var.scaleway_server_user} /srv/logs",
-
       # Reload systemd and start services
       "sh /opt/wzrd/terraform/init-services.sh >> /srv/logs/init-services.log 2>&1",
-
-      # # Save Terraform scripts (avoiding permission errors) for debug purposes
-      # "mkdir -p /opt/wzrd/tmp",
-      # "find /tmp -maxdepth 1 -name 'terraform_*.sh' -type f 2>/dev/null | xargs -I {} cp {} /opt/wzrd/tmp/ || true",
 
       # Success message
       "date | xargs -I {} echo 'Provisioning completed at: {}'",
