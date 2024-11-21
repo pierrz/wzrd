@@ -11,6 +11,8 @@ def load_state():
     if os.path.exists(cli_config.STATE_FILE):
         with open(cli_config.STATE_FILE, 'r') as f:
             return json.load(f)
+    else:
+        print("No state file found. Creating a new one.")
     return {ConversationState.resume_imported: False, ConversationState.messages: []}
 
 def update_state(state):

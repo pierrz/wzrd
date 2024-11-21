@@ -1,10 +1,9 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import subprocess
-import json
-import os
 import sys
-from pathlib import Path
+from pathlib import Path, PurePath
+import logging
 
 app = Flask(__name__)
 # Configure CORS to allow requests from the Vue dev server
@@ -22,8 +21,8 @@ CORS(app, resources={
 @app.route('/ask', methods=['POST'])
 def ask():
     try:
-        # Get the absolute path to the CLI directory from the app directory
-        cli_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'cli', 'main.py'))
+
+        cli_path = PurePath(Path(__file__).parent.parent, 'cli', 'main.py')
         app.logger.debug(f"CLI path: {cli_path}")
         
         # Run import-resume with full error capture
@@ -31,7 +30,7 @@ def ask():
             [sys.executable, cli_path, 'import-resume'],
             capture_output=True,
             text=True,
-            cwd=os.path.dirname(cli_path)  # Set working directory to CLI directory
+            cwd=cli_path.parent     # Set working directory to CLI directory
         )
         if import_result.returncode != 0:
             app.logger.error(f"Import resume failed: {import_result.stderr}")
@@ -48,7 +47,7 @@ def ask():
             [sys.executable, cli_path, 'ask-question', question],
             capture_output=True,
             text=True,
-            cwd=os.path.dirname(cli_path)  # Set working directory to CLI directory
+            cwd=cli_path.parent     # Set working directory to CLI directory
         )
         
         if result.returncode != 0:
@@ -62,9 +61,8 @@ def ask():
         app.logger.error(f"Server error: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
 
+
 if __name__ == '__main__':
-    # Enable more detailed logging
-    import logging
     logging.basicConfig(level=logging.DEBUG)
     app.logger.setLevel(logging.DEBUG)
     

@@ -176,10 +176,10 @@ resource "null_resource" "setup_services" {
       # .env
       "echo 'Creating .env file ...'",
       "tee /opt/wzrd/.env << EOF",
-      "ANTHROPIC_API_KEY=${var.anthropic_api_key}",
+      # "ANTHROPIC_API_KEY=${var.anthropic_api_key}",
+      "OPENAI_API_KEY=${var.openai_api_key}",
       "DATA_BUCKET=${var.data_bucket}",
       "DATA_SOURCE_KEY=${var.data_source_key}",
-      # "NODE_ENV=production",
       "EOF",
 
       # Service for Typescript components
