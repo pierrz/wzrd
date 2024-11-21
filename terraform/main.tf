@@ -162,7 +162,7 @@ resource "null_resource" "setup_services" {
       "  endpoint_url = https://s3.${local.region}.scw.cloud",
       "EOF",
 
-      # .env
+      # .env (adapt this based on the chose LLM provider)
       "echo 'Creating .env file ...'",
       "tee /opt/wzrd/.env << EOF",
       # "ANTHROPIC_API_KEY=${var.anthropic_api_key}",
@@ -231,8 +231,7 @@ resource "null_resource" "setup_services" {
 
       # Wait for Snap readiness
       "echo 'Wait for snap packages to be installed ...'",
-      "while [ ! -f /snap/bin/aws ]; do sleep 1; done",
-      "export PATH=$PATH:/snap/bin",
+      "while [ ! -f /snap/bin/certbot ]; do sleep 1; done",
 
       # UFW setup
       "echo 'Configuring UFW ...'",

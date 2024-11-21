@@ -166,3 +166,4 @@ cython_debug/
 
 # project
 conversation_state.json
+*.docx

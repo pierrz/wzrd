@@ -11,5 +11,20 @@ dependencies = [
     "python-docx>=1.1.2",
     "simplemind[full]>=0.2.4",
     "flask>=3.1.0",
-    "Flask-Cors>=5.0.0"
+    "Flask-Cors>=5.0.0",
+    "pre-commit>=4.0.1"
 ]
+
+[tool.black]
+line-length = 79
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  | \.git
+  | \.mypy_cache
+  | \.venv
+  | \__pycache__
+)/
+'''
