@@ -1,0 +1,33 @@
+[project]
+name = "self-bot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.35.64",
+    "pandas>=2.2.3",
+    "pydantic>=2.9.2",
+    "python-docx>=1.1.2",
+    "simplemind[full]>=0.2.4",
+    "flask>=3.1.0",
+    "Flask-Cors>=5.0.0",
+    "pre-commit>=4.0.1"
+]
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+line-length = 79
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  | \.git
+  | \.mypy_cache
+  | \.venv
+  | \__pycache__
+)/
+'''
