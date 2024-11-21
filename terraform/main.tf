@@ -136,8 +136,8 @@ resource "null_resource" "setup_services" {
       # Setup Python environment and dependencies
       "echo 'Setting up Python environment ...'",
       "curl -LsSf https://astral.sh/uv/install.sh | sh",
-      "uv venv",
-      "uv sync"
+      "$HOME/.local/bin/uv venv",
+      "$HOME/.local/bin/uv sync"
       # "python3 -m venv /opt/wzrd/venv",
       # ". /opt/wzrd/venv/bin/activate",
       # "pip install -r /opt/wzrd/app/requirements.txt",

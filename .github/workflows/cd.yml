@@ -119,7 +119,7 @@ jobs:
 
           # Delete previous instance
           scw instance server list project-id=${{ secrets.SCALEWAY_PROJECT_ID }}
-          INSTANCE_META=$(scw instance server list project-id=${{ secrets.SCALEWAY_PROJECT_ID }} tags=wzrd)
+          INSTANCE_META=$(scw instance server list project-id=${{ secrets.SCALEWAY_PROJECT_ID }} tags=[wzrd])
           INSTANCE_ID=$(echo "$INSTANCE_META" | awk 'NR==2 {print $1}')
           INSTANCE_NAME=$(echo "$INSTANCE_META" | awk 'NR==2 {print $2}')
           echo "Deleting instance '$INSTANCE_NAME' ..."
