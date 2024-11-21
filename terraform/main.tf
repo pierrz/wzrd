@@ -223,7 +223,7 @@ resource "null_resource" "setup_services" {
   # System setup
   provisioner "remote-exec" {
     inline = [
-      
+
       # Create log directories
       "echo 'Create log directory ...'",
       "sudo mkdir -p /srv/logs",
