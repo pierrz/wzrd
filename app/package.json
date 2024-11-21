@@ -10,8 +10,8 @@
     "test:unit": "vitest",
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
-    "lint": "eslint . --fix",
-    "format": "prettier --write src/",
+    "eslint": "eslint . .js,.jsx,.ts,.tsx",
+    "format": "prettier --write .",
     "prepare": "husky"
   },
   "husky": {

@@ -34,7 +34,7 @@ a,
     display: flex;
     place-items: center;
   }
-  
+
   #app {
     display: inline-flex;
     padding: 0 2rem;

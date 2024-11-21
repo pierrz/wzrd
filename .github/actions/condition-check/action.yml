@@ -2,8 +2,8 @@
 # - get the CD workflow to trigger
 # - avoid the CD workflow to get triggered from the main branch (as it is behind the current PR branch)
 
-name: "Check Deployment Condition"
-description: "Checks if deployment conditions are met"
+name: 'Check Deployment Condition'
+description: 'Checks if deployment conditions are met'
 author: pierrz
 
 inputs:
@@ -11,7 +11,7 @@ inputs:
     required: true
 
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     - name: Prepare condition output
       shell: bash

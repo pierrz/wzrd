@@ -5,12 +5,11 @@ name: CD pipeline
 on:
   workflow_dispatch: # manual trigger
   push:
-    branches: ["main"]
+    branches: ['main']
   pull_request:
-    branches: ["main"]
+    branches: ['main']
 
 jobs:
-
   check-condition:
     runs-on: ubuntu-latest
     steps:
@@ -43,10 +42,9 @@ jobs:
     if: ${{ needs.check-condition.outputs.RUN_DEPLOYMENT }} == 'true'
     environment:
       name: production
-    
+
     # TF_VAR_* are variables for Terraform
     env:
-      
       # TF_LOG: DEBUG
 
       # Domain
@@ -92,7 +90,7 @@ jobs:
         uses: actions/checkout@v4.1.7
 
       - name: Delete deprecated Scaleway resources (DNS records & instance)
-        continue-on-error: true   # when there is no instance to delete
+        continue-on-error: true # when there is no instance to delete
         run: |
 
           # Install Scaleway CLI

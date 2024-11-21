@@ -1,9 +1,8 @@
 name: Approval timeout template
 description: |
-      "This is a custom action to check whether a deployment was approved "
-      "and eventually cancel it if not approved before the chosen timeout deadline."
+  "This is a custom action to check whether a deployment was approved "
+  "and eventually cancel it if not approved before the chosen timeout deadline."
 author: pierrz
-
 inputs:
   ENVIRONMENT:
     required: true
@@ -15,9 +14,9 @@ inputs:
     required: true
   GITHUB_RUN_ID:
     required: true
-  
+
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     - name: Run approval timeout action
       shell: bash

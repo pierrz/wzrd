@@ -1,10 +1,12 @@
 # Self-bot
+
 A basic tool based on [Simplemind](https://github.com/kennethreitz/simplemind/)
 to quickly play with different LLMs and discuss with them about a provided text document.
 
 <hr>
 
 ### Installation
+
 - Install `uv`: https://docs.astral.sh/uv/getting-started/installation/
 - Install project: `uv venv && uv sync`
 - Create the `.env` file based on the provided `.env.example` (with only one LLM API key)
@@ -50,4 +52,5 @@ npm run preview -- --port 3000 --host
 <br>
 
 ### Terraform deployment
+
 Based on the chosen LLM, adapt [`terraform/main.tf`](terraform/main.tf#L165) and eventually create more API keys secrets/variables in both `.github/workflows/cd.yml` and `terraform/variables.tf`.
