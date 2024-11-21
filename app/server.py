@@ -18,23 +18,40 @@ CORS(app, resources={
     }
 })
 
+cli_path = PurePath(Path(__file__).parent.parent, 'cli', 'main.py')
+
+@app.route('/import', methods=['POST'])
+def import_resume():
+    # Run import-resume with full error capture
+    import_result = subprocess.run(
+        [sys.executable, cli_path, 'import-resume'],
+        capture_output=True,
+        text=True,
+        cwd=cli_path.parent     # Set working directory to CLI directory
+    )
+    if import_result.returncode != 0:
+        app.logger.error(f"Import resume failed: {import_result.stderr}")
+        return jsonify({'error': f'Import failed: {import_result.stderr}'}), 500
+    return jsonify({'response': import_result.stdout.strip()})
+
+
 @app.route('/ask', methods=['POST'])
 def ask():
     try:
 
-        cli_path = PurePath(Path(__file__).parent.parent, 'cli', 'main.py')
-        app.logger.debug(f"CLI path: {cli_path}")
+        # cli_path = PurePath(Path(__file__).parent.parent, 'cli', 'main.py')
+        # app.logger.debug(f"CLI path: {cli_path}")
         
-        # Run import-resume with full error capture
-        import_result = subprocess.run(
-            [sys.executable, cli_path, 'import-resume'],
-            capture_output=True,
-            text=True,
-            cwd=cli_path.parent     # Set working directory to CLI directory
-        )
-        if import_result.returncode != 0:
-            app.logger.error(f"Import resume failed: {import_result.stderr}")
-            return jsonify({'error': f'Import failed: {import_result.stderr}'}), 500
+        # # Run import-resume with full error capture
+        # import_result = subprocess.run(
+        #     [sys.executable, cli_path, 'import-resume'],
+        #     capture_output=True,
+        #     text=True,
+        #     cwd=cli_path.parent     # Set working directory to CLI directory
+        # )
+        # if import_result.returncode != 0:
+        #     app.logger.error(f"Import resume failed: {import_result.stderr}")
+        #     return jsonify({'error': f'Import failed: {import_result.stderr}'}), 500
         
         data = request.get_json()
         question = data.get('question')
@@ -67,3 +84,14 @@ if __name__ == '__main__':
     app.logger.setLevel(logging.DEBUG)
     
     app.run(port=4000, debug=True)
+
+    # # Run import-resume with full error capture
+    # import_result = subprocess.run(
+    #     [sys.executable, cli_path, 'import-resume'],
+    #     capture_output=True,
+    #     text=True,
+    #     cwd=cli_path.parent     # Set working directory to CLI directory
+    # )
+    # if import_result.returncode != 0:
+    #     app.logger.error(f"Import resume failed: {import_result.stderr}")
+        # return jsonify({'error': f'Import failed: {import_result.stderr}'}), 500

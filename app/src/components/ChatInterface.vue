@@ -1,4 +1,10 @@
 <template>
+
+  <div class="demo-title">
+    <h1>Wisetax assignment</h1>
+    <h3>Chat-bot demo</h3>
+  </div>
+
   <div class="chat-container">
     <div class="chat-messages" ref="messagesContainer">
       <div v-for="(message, index) in messages" :key="index" :class="['message', message.role]">
@@ -15,7 +21,9 @@
       <button @click="sendMessage">Send</button>
     </div>
   </div>
+
 </template>
+
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
@@ -32,6 +40,37 @@ interface ApiResponse {
 const messages = ref<Message[]>([])
 const currentMessage = ref('')
 const messagesContainer = ref<HTMLDivElement | null>(null)
+
+async function importResume() {
+
+  try {
+    // Call Python CLI using relative path
+    const response = await fetch('/import', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    })
+
+    const data = await response.json() as ApiResponse,
+          trimmed_response = data.response.replace('No state file found. Creating a new one. ', '');
+
+    alert(data.response)
+    alert(trimmed_response)
+    // Add assistant response
+    messages.value.push({
+      role: 'assistant',
+      content: trimmed_response
+    })
+  } catch (error) {
+    console.error('Error:', error)
+    messages.value.push({
+      role: 'assistant',
+      content: 'Sorry, there was an error processing your request: ' + (error as Error).message
+    })
+  }
+}
+
 
 const sendMessage = async (): Promise<void> => {
   if (!currentMessage.value.trim()) return
@@ -71,6 +110,8 @@ const sendMessage = async (): Promise<void> => {
 
   currentMessage.value = ''
 }
+
+importResume()
 
 // Auto-scroll to bottom when new messages arrive
 watch(() => messages.value.length, () => {

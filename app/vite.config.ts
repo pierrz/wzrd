@@ -22,6 +22,10 @@ export default defineConfig({
       '/ask': {
         target: 'http://localhost:4000',
         changeOrigin: true
+      },
+      '/import': {
+        target: 'http://localhost:4000',
+        changeOrigin: true
       }
     }
   }
