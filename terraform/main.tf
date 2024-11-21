@@ -106,10 +106,11 @@ resource "null_resource" "setup_services" {
   # Install Node application
   provisioner "remote-exec" {
     inline = [
+
       # Install Node.js from NodeSource
       "echo 'Installing Node.js ...'",
       "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -",
-      "sudo apt-get install -y nodejs",
+      "sudo apt-get install nodejs -y",
       "node --version",
       "npm --version",
 
@@ -130,7 +131,12 @@ resource "null_resource" "setup_services" {
       "echo 'Setting up Python environment ...'",
       "curl -LsSf https://astral.sh/uv/install.sh | sh",
       "$HOME/.local/bin/uv venv",
-      "$HOME/.local/bin/uv sync"
+      "$HOME/.local/bin/uv sync",
+
+      # Save Terraform scripts (avoiding permission errors) for debug purposes
+      "mkdir -p /opt/wzrd/tmp",
+      "find /tmp -maxdepth 1 -name 'terraform_*.sh' -type f 2>/dev/null | xargs -I {} cp {} /opt/wzrd/tmp/ || true",
+
     ]
   }
 
@@ -217,6 +223,9 @@ resource "null_resource" "setup_services" {
       "EOF",
       "sudo ln -sf /etc/nginx/sites-available/wzrd.conf /etc/nginx/sites-enabled/wzrd.conf",
       "sudo rm -f /etc/nginx/sites-enabled/default",
+
+      # Save Terraform scripts (avoiding permission errors) for debug purposes
+      "find /tmp -maxdepth 1 -name 'terraform_*.sh' -type f 2>/dev/null | xargs -I {} cp {} /opt/wzrd/tmp/ || true",
     ]
   }
 
@@ -251,7 +260,6 @@ resource "null_resource" "setup_services" {
       "sudo nginx -t",
 
       # Save Terraform scripts (avoiding permission errors) for debug purposes
-      "mkdir -p /opt/wzrd/tmp",
       "find /tmp -maxdepth 1 -name 'terraform_*.sh' -type f 2>/dev/null | xargs -I {} cp {} /opt/wzrd/tmp/ || true",
 
     ]
