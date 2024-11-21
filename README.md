@@ -4,7 +4,7 @@ to quickly play with different LLMs and discuss with them about a provided text 
 
 ### Installation
 - Install `uv`: https://docs.astral.sh/uv/getting-started/installation/
-- Install project: `uv sync`
+- Install project: `uv venv && uv sync`
 
 ### Run
 

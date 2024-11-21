@@ -44,7 +44,7 @@ const sendMessage = async (): Promise<void> => {
 
   try {
     // Call Python CLI
-    const response = await fetch('http://localhost:5000/ask', {
+    const response = await fetch('http://localhost:4000/ask', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

@@ -135,10 +135,13 @@ resource "null_resource" "setup_services" {
 
       # Setup Python environment and dependencies
       "echo 'Setting up Python environment ...'",
-      "python3 -m venv /opt/wzrd/venv",
-      ". /opt/wzrd/venv/bin/activate",
-      "pip install -r /opt/wzrd/app/requirements.txt",
-      "deactivate",
+      "curl -LsSf https://astral.sh/uv/install.sh | sh",
+      "uv venv",
+      "uv sync"
+      # "python3 -m venv /opt/wzrd/venv",
+      # ". /opt/wzrd/venv/bin/activate",
+      # "pip install -r /opt/wzrd/app/requirements.txt",
+      # "deactivate",
     ]
   }
 
@@ -205,9 +208,9 @@ resource "null_resource" "setup_services" {
       "[Service]",
       "Type=simple",
       "User=${var.scaleway_server_user}",
-      "WorkingDirectory=/opt/wzrd/app",
-      "Environment=PATH=/opt/wzrd/venv/bin",
-      "ExecStart=/opt/wzrd/venv/bin/python server.py",
+      "WorkingDirectory=/opt/wzrd",
+      "Environment=PATH=/opt/wzrd/.venv/bin",
+      "ExecStart=/opt/wzrd/.venv/bin/python app/server.py",
       "Restart=always",
       "RestartSec=10",
       "[Install]",

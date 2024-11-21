@@ -162,7 +162,7 @@ cython_debug/
 #.idea/
 
 # uv
-.python-version
+# .python-version
 
 # project
 conversation_state.json
