@@ -128,6 +128,9 @@ resource "null_resource" "setup_services" {
       "git clone $CLONE_FLAGS $CLONE_URI /opt/wzrd",
       "cd /opt/wzrd/app",
       "npm install --no-package-lock --no-save",
+      
+      # Build the Vue.js application
+      "npm run build",
 
       # Setup Python environment and dependencies
       "echo 'Setting up Python environment ...'",
@@ -180,11 +183,13 @@ resource "null_resource" "setup_services" {
       "sudo tee /etc/systemd/system/wzrd-app.service << EOF",
       "[Unit]",
       "Description=WZRD Application",
+      "After=network.target",
       "[Service]",
       "Type=simple",
       "User=${var.scaleway_server_user}",
-      "WorkingDirectory=/opt/wzrd",
-      "ExecStart=/usr/bin/npm start",
+      "WorkingDirectory=/opt/wzrd/app",
+      # "Environment=NODE_ENV=production",
+      "ExecStart=/usr/bin/npm run preview -- --port 3000 --host",
       "Restart=always",
       "RestartSec=10",
       "[Install]",
@@ -210,14 +215,14 @@ resource "null_resource" "setup_services" {
 
       # Nginx configuration
       "echo 'Setting up Nginx ...'",
-      "NGINX_CONF_TEMPLATE=$(cat /opt/wzrd/terraform/bctk.conf)",
-      "sudo tee /etc/nginx/sites-available/bctk.conf << EOF",
+      "NGINX_CONF_TEMPLATE=$(cat /opt/wzrd/terraform/wzrd.conf)",
+      "sudo tee /etc/nginx/sites-available/wzrd.conf << EOF",
       "server {",
       "server_name ${var.wzrd_domain};",
       "$NGINX_CONF_TEMPLATE",
       "}",
       "EOF",
-      "sudo ln -sf /etc/nginx/sites-available/bctk.conf /etc/nginx/sites-enabled/bctk.conf",
+      "sudo ln -sf /etc/nginx/sites-available/wzrd.conf /etc/nginx/sites-enabled/wzrd.conf",
       "sudo rm -f /etc/nginx/sites-enabled/default",
     ]
   }
@@ -241,11 +246,11 @@ resource "null_resource" "setup_services" {
       "sudo systemctl enable ufw",
 
       # Setup SSL certificate with Certbot
-      # "echo 'Configuring SSL ...'",
-      # "sudo ln -sf /snap/bin/certbot /usr/bin/certbot",
-      # "sudo certbot --nginx -d ${var.wzrd_domain} --non-interactive --agree-tos --email ${local.sub_domain}@${local.root_domain} >> /srv/logs/certbot.log 2>&1",
-      # "sudo rm -f /etc/nginx/sites-enabled/default", # just in case
-      # "sudo nginx -t",
+      "echo 'Configuring SSL ...'",
+      "sudo ln -sf /snap/bin/certbot /usr/bin/certbot",
+      "sudo certbot --nginx -d ${var.wzrd_domain} --non-interactive --agree-tos --email ${local.sub_domain}@${local.root_domain} >> /srv/logs/certbot.log 2>&1",
+      "sudo rm -f /etc/nginx/sites-enabled/default", # just in case
+      "sudo nginx -t",
     ]
   }
 
