@@ -2,6 +2,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import subprocess
 import json
+import os
+import sys
+from pathlib import Path
 
 app = Flask(__name__)
 # Configure CORS to allow requests from the Vue dev server
@@ -19,8 +22,20 @@ CORS(app, resources={
 @app.route('/ask', methods=['POST'])
 def ask():
     try:
-        # subprocess.run(['ls'])
-        subprocess.run(['uv', 'run', 'cli/main.py', 'import-resume'])
+        # Get the absolute path to the CLI directory from the app directory
+        cli_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'cli', 'main.py'))
+        app.logger.debug(f"CLI path: {cli_path}")
+        
+        # Run import-resume with full error capture
+        import_result = subprocess.run(
+            [sys.executable, cli_path, 'import-resume'],
+            capture_output=True,
+            text=True,
+            cwd=os.path.dirname(cli_path)  # Set working directory to CLI directory
+        )
+        if import_result.returncode != 0:
+            app.logger.error(f"Import resume failed: {import_result.stderr}")
+            return jsonify({'error': f'Import failed: {import_result.stderr}'}), 500
         
         data = request.get_json()
         question = data.get('question')
@@ -29,15 +44,28 @@ def ask():
             return jsonify({'error': 'No question provided'}), 400
 
         # Call the CLI with the question
-        result = subprocess.run(['uv', 'run', 'cli/main.py', 'ask-question', question], 
-                              capture_output=True, 
-                              text=True)
+        result = subprocess.run(
+            [sys.executable, cli_path, 'ask-question', question],
+            capture_output=True,
+            text=True,
+            cwd=os.path.dirname(cli_path)  # Set working directory to CLI directory
+        )
         
+        if result.returncode != 0:
+            app.logger.error(f"Ask question failed: {result.stderr}")
+            return jsonify({'error': f'Question processing failed: {result.stderr}'}), 500
+
         # Return the CLI output
         return jsonify({'response': result.stdout.strip()})
     
     except Exception as e:
+        app.logger.error(f"Server error: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
+    # Enable more detailed logging
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    app.logger.setLevel(logging.DEBUG)
+    
     app.run(port=4000, debug=True)

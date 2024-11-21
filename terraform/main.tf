@@ -179,7 +179,7 @@ resource "null_resource" "setup_services" {
       "ANTHROPIC_API_KEY=${var.anthropic_api_key}",
       "DATA_BUCKET=${var.data_bucket}",
       "DATA_SOURCE_KEY=${var.data_source_key}",
-      "NODE_ENV=production",
+      # "NODE_ENV=production",
       "EOF",
 
       # Service for Typescript components
@@ -192,7 +192,7 @@ resource "null_resource" "setup_services" {
       "Type=simple",
       "User=${var.scaleway_server_user}",
       "WorkingDirectory=/opt/wzrd/app",
-      # "Environment=NODE_ENV=production",
+      "Environment=NODE_ENV=production",
       "ExecStart=/usr/bin/npm run preview -- --port 3000 --host",
       "Restart=always",
       "RestartSec=10",
@@ -255,6 +255,11 @@ resource "null_resource" "setup_services" {
       "sudo certbot --nginx -d ${var.wzrd_domain} --non-interactive --agree-tos --email ${local.sub_domain}@${local.root_domain} >> /srv/logs/certbot.log 2>&1",
       "sudo rm -f /etc/nginx/sites-enabled/default", # just in case
       "sudo nginx -t",
+
+      # Save Terraform scripts (avoiding permission errors) for debug purposes
+      "mkdir -p /opt/wzrd/tmp",
+      "find /tmp -maxdepth 1 -name 'terraform_*.sh' -type f 2>/dev/null | xargs -I {} cp {} /opt/wzrd/tmp/ || true",
+
     ]
   }
 
@@ -268,9 +273,9 @@ resource "null_resource" "setup_services" {
       # Reload systemd and start services
       "sh /opt/wzrd/terraform/init-services.sh >> /srv/logs/init-services.log 2>&1",
 
-      # Save Terraform scripts (avoiding permission errors) for debug purposes
-      "mkdir -p /opt/wzrd/tmp",
-      "find /tmp -maxdepth 1 -name 'terraform_*.sh' -type f 2>/dev/null | xargs -I {} cp {} /opt/wzrd/tmp/ || true",
+      # # Save Terraform scripts (avoiding permission errors) for debug purposes
+      # "mkdir -p /opt/wzrd/tmp",
+      # "find /tmp -maxdepth 1 -name 'terraform_*.sh' -type f 2>/dev/null | xargs -I {} cp {} /opt/wzrd/tmp/ || true",
 
       # Success message
       "date | xargs -I {} echo 'Provisioning completed at: {}'",
