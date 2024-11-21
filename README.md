@@ -53,4 +53,4 @@ npm run preview -- --port 3000 --host
 
 ### Terraform deployment
 
-Based on the chosen LLM, adapt [`terraform/main.tf`](terraform/main.tf#L165) and eventually create more API keys secrets/variables in both `.github/workflows/cd.yml` and `terraform/variables.tf`.
+Based on the chosen LLM, adapt [`terraform/main.tf`](terraform/main.tf#L171) and eventually create more API keys secrets/variables in both `.github/workflows/cd.yml` and `terraform/variables.tf`.
